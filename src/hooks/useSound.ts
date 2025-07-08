@@ -3,21 +3,21 @@ import { useEffect } from 'react';
 import { useGame } from '../app/context/GameContext';
 
 interface UseSoundProps {
-  isCorrect: boolean | null;
+  soundPath: string;
   play: boolean;
 }
 
-const useSound = ({ isCorrect, play }: UseSoundProps) => {
+const useSound = ({ soundPath, play }: UseSoundProps) => {
   const { state } = useGame();
   const { soundEnabled } = state;
   useEffect(() => {
-    if (play && isCorrect !== null && soundEnabled) {
+    if (play && soundEnabled) {
       const sound = new Howl({
-        src: [isCorrect ? '/sounds/correct.mp3' : '/sounds/incorrect.mp3'],
+        src: [soundPath],
       });
       sound.play();
     }
-  }, [play, isCorrect, soundEnabled]);
+  }, [play, soundPath, soundEnabled]);
 };
 
 export default useSound;

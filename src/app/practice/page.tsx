@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import FeedbackDisplay from '../components/FeedbackDisplay'
 import { generateQuestion } from '../../utils/questionGenerator'
+import useSound from '../../hooks/useSound'; // Import useSound hook
 import { FaBackspace, FaCheck } from 'react-icons/fa'; // Import icons
 
 export default function PracticePage() {
@@ -16,8 +17,13 @@ export default function PracticePage() {
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [showTimeUpEffect, setShowTimeUpEffect] = useState(false);
+  const [playTimeUpSound, setPlayTimeUpSound] = useState(false);
 
   const { currentQuestion, calcType, maxDigits, carryUp, borrowDown } = state;
+
+  useSound({ soundPath: isCorrect ? '/sounds/correct.mp3' : '/sounds/incorrect.mp3', play: showFeedback }); // 正解・不正解の効果音
+  useSound({ soundPath: '/sounds/time_up.mp3', play: playTimeUpSound }); // 時間切れの効果音
 
   // 初回レンダリング時に問題がなければ生成
   useEffect(() => {
@@ -34,8 +40,12 @@ export default function PracticePage() {
 
   useEffect(() => {
     if (timeLeft === 0) {
-      router.push('/result')
-      return
+      setShowTimeUpEffect(true);
+      setPlayTimeUpSound(true);
+      setTimeout(() => {
+        router.push('/result');
+      }, 1500); // エフェクト表示時間
+      return;
     }
 
     const timer = setInterval(() => {
@@ -83,6 +93,11 @@ export default function PracticePage() {
         <Box minH="60px"> {/* Adjust minH for feedback animation */}
           <FeedbackDisplay show={showFeedback} isCorrect={isCorrect} />
         </Box>
+        {showTimeUpEffect && (
+          <Box fontSize="2xl" fontWeight="bold" color="red.500">
+            タイムアップ！
+          </Box>
+        )}
         <Box fontSize="2xl" fontWeight="bold" data-testid="question-text">
           {currentQuestion.q}
         </Box>
