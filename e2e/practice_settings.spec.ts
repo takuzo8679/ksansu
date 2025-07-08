@@ -1,27 +1,28 @@
 import { test, expect } from '@playwright/test';
 
-test('should allow user to practice addition and check score', async ({ page }) => {
+// Constants for selectors and text
+const START_PRACTICE_BUTTON = 'れんしゅうをはじめる';
+const PRACTICE_PAGE_HEADING = 'もんだい 1';
+const RESULT_PAGE_HEADING = 'けっか';
+const ANSWER_BUTTON = 'こたえる';
+const FEEDBACK_CORRECT_SELECTOR = '.feedback.correct';
+const FEEDBACK_MESSAGE_TEST_ID = 'feedback-message';
+const QUESTION_TEXT_TEST_ID = 'question-text';
+const ANSWER_INPUT_TEST_ID = 'answer-input';
+
+// Common setup for all tests
+test.beforeEach(async ({ page }) => {
   await page.goto('/');
-
-  await page.getByRole('button', { name: 'れんしゅうをはじめる' }).click();
-
-  // Wait for the URL to change to the practice page
+  await page.getByRole('button', { name: START_PRACTICE_BUTTON }).click();
   await page.waitForURL(/.*practice/, { timeout: 10000 });
+  await expect(page.getByRole('heading', { name: PRACTICE_PAGE_HEADING })).toBeVisible({ timeout: 10000 });
+});
 
-  // Wait for the practice page to load by checking for a specific element
-  await expect(page.getByRole('heading', { name: 'もんだい 1' })).toBeVisible({ timeout: 10000 });
-
-  // Select "足し算" if not already selected (assuming it's a dropdown or radio button)
-  // This part might need adjustment based on actual UI.
-  // For now, let's assume addition is default or can be selected.
-  // await page.selectOption('#calculation-type', 'add'); // Example for a select dropdown
-
+test('should allow user to practice addition and check score', async ({ page }) => {
   // Solve 3 questions
   for (let i = 1; i <= 3; i++) {
-    // Ensure the question text element is visible before trying to get its text
-    await expect(page.getByTestId('question-text')).toBeVisible({ timeout: 10000 });
-    // Get the question text
-    const questionText = await page.getByTestId('question-text').innerText();
+    await expect(page.getByTestId(QUESTION_TEXT_TEST_ID)).toBeVisible({ timeout: 10000 });
+    const questionText = await page.getByTestId(QUESTION_TEXT_TEST_ID).innerText();
     const match = questionText.match(/(\d+)\s*\+\s*(\d+)\s*=/);
 
     if (match) {
@@ -29,23 +30,17 @@ test('should allow user to practice addition and check score', async ({ page }) 
       const n2 = parseInt(match[2]);
       const answer = n1 + n2;
 
-      // Input the answer
-      await page.getByTestId('answer-input').fill(answer.toString());
-      await page.waitForLoadState('domcontentloaded'); // Wait for DOM to update after filling
+      await page.getByTestId(ANSWER_INPUT_TEST_ID).fill(answer.toString());
+      await page.waitForLoadState('domcontentloaded');
 
-      // Simulate pressing Enter to submit the answer
-      await page.getByTestId('answer-input').press('Enter');
+      await page.getByTestId(ANSWER_INPUT_TEST_ID).press('Enter');
 
-      // Verify feedback for correct answer (e.g., a success message or animation)
-      await expect(page.getByTestId('feedback-message')).toBeVisible({ timeout: 10000 });
-      await expect(page.getByTestId('feedback-message')).toHaveText('せいかい！');
-      await expect(page.getByTestId('feedback-message')).toHaveClass(/feedback correct/);
+      await expect(page.getByTestId(FEEDBACK_MESSAGE_TEST_ID)).toBeVisible({ timeout: 10000 });
+      await expect(page.getByTestId(FEEDBACK_MESSAGE_TEST_ID)).toHaveText('せいかい！');
+      await expect(page.getByTestId(FEEDBACK_MESSAGE_TEST_ID)).toHaveClass(/feedback correct/);
 
-      // Wait for feedback to disappear before moving to the next question
-      await page.waitForTimeout(1500); // Matches the setTimeout in practice/page.tsx
+      await page.waitForTimeout(1500);
 
-      // Verify score (this might require reading the score element)
-      // For now, let's just ensure we move to the next question.
       if (i < 3) {
         await expect(page.getByRole('heading', { name: `もんだい ${i + 1}` })).toBeVisible({ timeout: 10000 });
       }
@@ -54,32 +49,27 @@ test('should allow user to practice addition and check score', async ({ page }) 
     }
   }
 
-  // After 3 questions, we should be on the result page.
   await page.waitForURL(/.*result/);
-  await expect(page.getByRole('heading', { name: 'けっか' })).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole('heading', { name: RESULT_PAGE_HEADING })).toBeVisible({ timeout: 10000 });
 });
 
-test('should allow user to select calculation type and max digits', async ({ page }) => {
+test('should allow user to select subtraction and 3 digits', async ({ page }) => {
+  // Navigate back to the home page to select options
   await page.goto('/');
 
-  // Select "引き算" on the initial page
-  await expect(page.getByTestId('calc-type-sub')).toBeVisible({ timeout: 10000 }); // Ensure the radio button is visible
+  await expect(page.getByTestId('calc-type-sub')).toBeVisible({ timeout: 10000 });
   await page.getByTestId('calc-type-sub').check();
-  // Select max digits "3桁" on the initial page
-  await expect(page.getByTestId('max-digits-3')).toBeVisible({ timeout: 10000 }); // Ensure the radio button is visible
+
+  await expect(page.getByTestId('max-digits-3')).toBeVisible({ timeout: 10000 });
   await page.getByTestId('max-digits-3').check();
 
-  await page.getByRole('button', { name: 'れんしゅうをはじめる' }).click();
+  await page.getByRole('button', { name: START_PRACTICE_BUTTON }).click();
   
-  // Wait for the URL to change to the practice page
-  await page.waitForURL(/.*practice/, { timeout: 10000 }); // Shortened timeout
+  await page.waitForURL(/.*practice/, { timeout: 10000 });
+  await expect(page.getByRole('heading', { name: PRACTICE_PAGE_HEADING })).toBeVisible({ timeout: 10000 });
 
-  // Wait for the practice page to load by checking for a specific element
-  await expect(page.getByRole('heading', { name: 'もんだい 1' })).toBeVisible({ timeout: 10000 });
-
-  // Verify that the question is a subtraction problem with up to 3 digits
-  await expect(page.getByTestId('question-text')).toBeVisible({ timeout: 10000 }); // Ensure the question text is visible
-  const questionText = await page.getByTestId('question-text').innerText();
+  await expect(page.getByTestId(QUESTION_TEXT_TEST_ID)).toBeVisible({ timeout: 10000 });
+  const questionText = await page.getByTestId(QUESTION_TEXT_TEST_ID).innerText();
   const match = questionText.match(/(\d+)\s*-\s*(\d+)\s*=/);
   expect(match).not.toBeNull();
   if (match) {
@@ -90,20 +80,12 @@ test('should allow user to select calculation type and max digits', async ({ pag
   }
 });
 
-test('should transition to result page after 120 seconds', async ({ page }) => {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'れんしゅうをはじめる' }).click();
-  
-  // Wait for the URL to change to the practice page
-  await page.waitForURL(/.*practice/, { timeout: 10000 }); // Shortened timeout
+test('should transition to result page after timer expires', async ({ page }) => {
+  // No need to navigate or click start button here, as it's handled by beforeEach
+  // The timer starts on the practice page
 
-  // Wait for the practice page to load by checking for a specific element
-  await expect(page.getByRole('heading', { name: 'もんだい 1' })).toBeVisible({ timeout: 10000 });
+  await page.waitForTimeout(5000);
 
-  // Wait for 5 seconds (e2e test mode)
-  await page.waitForTimeout(5000); // 5 seconds for e2e test
-
-  // Expect to be on the result page
   await page.waitForURL(/.*result/);
-  await expect(page.getByRole('heading', { name: 'けっか' })).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole('heading', { name: RESULT_PAGE_HEADING })).toBeVisible({ timeout: 10000 });
 });
