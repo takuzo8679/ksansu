@@ -11,7 +11,7 @@ interface FeedbackDisplayProps {
 const MotionText = motion(Text);
 
 const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ isCorrect, show }) => {
-  useSound({ isCorrect, play: show });
+  useSound({ soundPath: isCorrect ? '/sounds/correct.mp3' : '/sounds/incorrect.mp3', play: show });
 
   const message = isCorrect ? 'せいかい！' : 'ざんねん！';
   const color = isCorrect ? 'green.500' : 'red.500';
