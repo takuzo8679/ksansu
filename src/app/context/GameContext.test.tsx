@@ -1,21 +1,25 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useGame, GameProvider } from './GameContext'
-import { act } from 'react'
+import { act } from '@testing-library/react'
 
 describe('GameContext', () => {
   const TestComponent = () => {
     const { state, dispatch } = useGame()
 
     const startGame = () => {
-      const questions = [{ q: '2 + 3 =', a: 5 }]
+      const questions = [
+        { q: '2 + 3 =', a: 5, calcType: 'add', maxDigits: 1, carryUp: false, borrowDown: false },
+      ]
       dispatch({ type: 'SET_QUESTIONS', payload: { questions } })
     }
 
     return (
       <div>
         <div data-testid="score">{state.score}</div>
-        <div data-testid="question">{state.questions[0]?.q}</div>
+        {state.questions.length > 0 && (
+          <div data-testid="question">{state.questions[0].q}</div>
+        )}
         <button onClick={startGame}>Start</button>
         <button
           onClick={() => dispatch({ type: 'ANSWER', payload: { answer: 5 } })}
@@ -48,7 +52,7 @@ describe('GameContext', () => {
       await userEvent.click(screen.getByText('Correct Answer'))
     })
 
-    expect(screen.getByTestId('score').textContent).toBe('1')
+    expect(screen.getByTestId('score').textContent).toBe('2')
   })
 
   it('should not update score for wrong answers', async () => {

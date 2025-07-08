@@ -4,14 +4,14 @@ import { createContext, useContext, useReducer } from 'react'
 
 // 状態の型定義
 interface GameState {
-  questions: { q: string; a: number }[]
+  questions: { q: string; a: number; calcType: string; maxDigits: number; carryUp: boolean; borrowDown: boolean }[]
   currentQuestionIndex: number
   score: number
 }
 
 // アクションの型定義
 type GameAction =
-  | { type: 'SET_QUESTIONS'; payload: { questions: { q: string; a: number }[] } }
+  | { type: 'SET_QUESTIONS'; payload: { questions: { q: string; a: number; calcType: string; maxDigits: number; carryUp: boolean; borrowDown: boolean }[] } }
   | { type: 'ANSWER'; payload: { answer: number } }
   | { type: 'RESET' }
 
@@ -26,16 +26,34 @@ const initialState: GameState = {
 const gameReducer = (state: GameState, action: GameAction): GameState => {
   switch (action.type) {
     case 'SET_QUESTIONS':
+      console.log('SET_QUESTIONS action received with questions:', action.payload.questions)
       return { ...state, questions: action.payload.questions }
     case 'ANSWER': {
-      const isCorrect = state.questions[state.currentQuestionIndex].a === action.payload.answer
-      const newScore = isCorrect ? state.score + 1 : state.score
-      const newQuestionIndex = state.currentQuestionIndex + 1
+      const currentQuestion = state.questions[state.currentQuestionIndex]
+      const isCorrect = currentQuestion.a === action.payload.answer
+      let scoreToAdd = 0
+
+      if (isCorrect) {
+        // 基礎点
+        if (currentQuestion.calcType === 'add' || currentQuestion.calcType === 'sub') {
+          scoreToAdd += 1
+        } else if (currentQuestion.calcType === 'mul' || currentQuestion.calcType === 'div') {
+          scoreToAdd += 2
+        }
+
+        // 桁数に応じた点数
+        scoreToAdd += currentQuestion.maxDigits
+
+        // 繰り上がり・繰り下がりによる点数
+        if (currentQuestion.carryUp || currentQuestion.borrowDown) {
+          scoreToAdd += 1
+        }
+      }
 
       return {
         ...state,
-        score: newScore,
-        currentQuestionIndex: newQuestionIndex,
+        score: state.score + scoreToAdd,
+        currentQuestionIndex: state.currentQuestionIndex + 1,
       }
     }
     case 'RESET':
