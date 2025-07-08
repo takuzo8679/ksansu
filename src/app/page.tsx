@@ -43,7 +43,6 @@ export default function Home() {
           <Text fontSize="xl">こんにちは、{state.currentUser.name}さん！</Text>
         )}
         <UserManagement />
-        <Text fontSize="xl">最高記録: {state.highScore}点</Text>
         <LevelSelectionForm />
         <Button
           colorScheme="teal"

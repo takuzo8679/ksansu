@@ -21,17 +21,6 @@ export default function PracticePage() {
   const [playTimeUpSound, setPlayTimeUpSound] = useState(false);
 
   const { currentQuestion, calcType, maxDigits, carryUp, borrowDown } = state;
-  const { newHighScoreAchieved } = state;
-
-  useEffect(() => {
-    if (newHighScoreAchieved) {
-      // ここに「おめでとう！」のエフェクト表示ロジックを追加
-      // 例: ポップアップ表示、アニメーションなど
-      console.log("New High Score Achieved! Congratulations!");
-      // フラグをリセット
-      dispatch({ type: 'RESET_NEW_HIGH_SCORE_FLAG' });
-    }
-  }, [newHighScoreAchieved, dispatch]);
 
   useSound({ soundPath: isCorrect ? '/sounds/correct.mp3' : '/sounds/incorrect.mp3', play: showFeedback }); // 正解・不正解の効果音
   useSound({ soundPath: '/sounds/time_up.mp3', play: playTimeUpSound }); // 時間切れの効果音
