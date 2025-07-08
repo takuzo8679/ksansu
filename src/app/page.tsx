@@ -4,61 +4,26 @@ import {
   Box,
   Button,
   Heading,
-  Radio,
-  RadioGroup,
-  Stack,
-  Text,
   VStack,
 } from '@chakra-ui/react'
-import NextLink from 'next/link'
 import { useGame } from './context/GameContext'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { generateQuestion } from '../utils/questionGenerator'
 import { useRouter } from 'next/navigation'
+import useLocalStorage from '../hooks/useLocalStorage'
+import PracticeSettingsForm from './components/PracticeSettingsForm'
 
 export default function Home() {
   const { dispatch } = useGame()
   const router = useRouter()
-  const [calcType, setCalcType] = useState('add')
-  const [maxDigits, setMaxDigits] = useState('1')
-  const [carryUp, setCarryUp] = useState('false')
-  const [borrowDown, setBorrowDown] = useState('false')
+  const [calcType, setCalcType] = useLocalStorage('calcType', 'add')
+  const [maxDigits, setMaxDigits] = useLocalStorage('maxDigits', '1')
+  const [carryUp, setCarryUp] = useLocalStorage('carryUp', 'false')
+  const [borrowDown, setBorrowDown] = useLocalStorage('borrowDown', 'false')
 
   useEffect(() => {
     dispatch({ type: 'RESET' })
-
-    // クライアントサイドでのみlocalStorageから値を読み込む
-    if (typeof window !== 'undefined') {
-      setCalcType(localStorage.getItem('calcType') || 'add')
-      setMaxDigits(localStorage.getItem('maxDigits') || '1')
-      setCarryUp(localStorage.getItem('carryUp') || 'false')
-      setBorrowDown(localStorage.getItem('borrowDown') || 'false')
-    }
   }, [dispatch])
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('calcType', calcType)
-    }
-  }, [calcType])
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('maxDigits', maxDigits)
-    }
-  }, [maxDigits])
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('carryUp', carryUp)
-    }
-  }, [carryUp])
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('borrowDown', borrowDown)
-    }
-  }, [borrowDown])
 
   const startGame = () => {
     const questions = Array.from({ length: 10 }, () =>
@@ -79,45 +44,16 @@ export default function Home() {
         <Heading as="h1" size="2xl">
           けいさんすう
         </Heading>
-        <Box>
-          <Heading as="h2" size="lg" mb={4}>
-            レベルせんたく
-          </Heading>
-          <Stack spacing={4}>
-            <RadioGroup onChange={setCalcType} value={calcType}>
-              <Stack direction="row">
-                <Radio value="add" data-testid="calc-type-add">たしざん</Radio>
-                <Radio value="sub" data-testid="calc-type-sub">ひきざん</Radio>
-                <Radio value="mul" data-testid="calc-type-mul">かけざん</Radio>
-                <Radio value="div" data-testid="calc-type-div">わりざん</Radio>
-              </Stack>
-            </RadioGroup>
-            <RadioGroup onChange={setMaxDigits} value={maxDigits}>
-              <Stack direction="row">
-                <Radio value="1" data-testid="max-digits-1">1けた</Radio>
-                <Radio value="2" data-testid="max-digits-2">2けた</Radio>
-                <Radio value="3" data-testid="max-digits-3">3けた</Radio>
-                <Radio value="4" data-testid="max-digits-4">4けた</Radio>
-              </Stack>
-            </RadioGroup>
-            {calcType === 'add' && (
-              <RadioGroup onChange={setCarryUp} value={carryUp}>
-                <Stack direction="row">
-                  <Radio value="true" data-testid="carry-up-true">くりあがりあり</Radio>
-                  <Radio value="false" data-testid="carry-up-false">くりあがりなし</Radio>
-                </Stack>
-              </RadioGroup>
-            )}
-            {calcType === 'sub' && (
-              <RadioGroup onChange={setBorrowDown} value={borrowDown}>
-                <Stack direction="row">
-                  <Radio value="true" data-testid="borrow-down-true">くりさがりあり</Radio>
-                  <Radio value="false" data-testid="borrow-down-false">くりさがりなし</Radio>
-                </Stack>
-              </RadioGroup>
-            )}
-          </Stack>
-        </Box>
+        <PracticeSettingsForm
+          calcType={calcType}
+          setCalcType={setCalcType}
+          maxDigits={maxDigits}
+          setMaxDigits={setMaxDigits}
+          carryUp={carryUp}
+          setCarryUp={setCarryUp}
+          borrowDown={borrowDown}
+          setBorrowDown={setBorrowDown}
+        />
         <Button
           colorScheme="teal"
           size="lg"

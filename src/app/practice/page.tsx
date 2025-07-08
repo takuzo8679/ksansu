@@ -4,6 +4,7 @@ import { Box, Button, Heading, Input, VStack, Text } from '@chakra-ui/react'
 import { useGame } from '../context/GameContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import FeedbackDisplay from '../components/FeedbackDisplay'
 
 export default function PracticePage() {
   const { state, dispatch } = useGame()
@@ -75,11 +76,7 @@ export default function PracticePage() {
         <Box fontSize="2xl" fontWeight="bold" data-testid="question-text">
           {questions[currentQuestionIndex].q}
         </Box>
-        {feedbackMessage && (
-          <Text fontSize="xl" fontWeight="bold" className={feedbackClass} data-testid="feedback-message">
-            {feedbackMessage}
-          </Text>
-        )}
+        <FeedbackDisplay message={feedbackMessage} className={feedbackClass} />
         <VStack spacing={4} w="100%" maxW="xs">
           <Input
             type="number"
