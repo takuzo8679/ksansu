@@ -11,8 +11,10 @@ import { useGame } from './context/GameContext'
 import { generateQuestion } from '../utils/questionGenerator'
 import { useRouter } from 'next/navigation'
 
-import LevelSelectionForm from './components/LevelSelectionForm'
-import UserManagement from './components/UserManagement'
+import dynamic from 'next/dynamic';
+
+const DynamicUserManagement = dynamic(() => import('./components/UserManagement'), { ssr: false });
+const DynamicLevelSelectionForm = dynamic(() => import('./components/LevelSelectionForm'), { ssr: false });
 
 export default function Home() {
   const { state, dispatch } = useGame()
@@ -42,8 +44,8 @@ export default function Home() {
         {state.currentUser && (
           <Text fontSize="xl">こんにちは、{state.currentUser.name}さん！</Text>
         )}
-        <UserManagement />
-        <LevelSelectionForm />
+        <DynamicUserManagement />
+        <DynamicLevelSelectionForm />
         <Button
           colorScheme="teal"
           size="lg"
