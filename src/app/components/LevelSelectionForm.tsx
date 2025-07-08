@@ -1,4 +1,4 @@
-import { Box, Heading, Radio, RadioGroup, Stack } from '@chakra-ui/react';
+import { Box, Heading, Radio, RadioGroup, Stack, Switch, Text } from '@chakra-ui/react';
 import React from 'react';
 import { useGame } from '../context/GameContext';
 
@@ -43,6 +43,14 @@ const LevelSelectionForm: React.FC = () => {
             </Stack>
           </RadioGroup>
         )}
+      </Stack>
+      <Stack direction="row" align="center" mt={4}>
+        <Switch
+          id="sound-toggle"
+          isChecked={state.soundEnabled}
+          onChange={(e) => dispatch({ type: 'SET_SOUND_ENABLED', payload: { soundEnabled: e.target.checked } })}
+        />
+        <Text>おと</Text>
       </Stack>
     </Box>
   );

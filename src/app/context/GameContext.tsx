@@ -31,6 +31,7 @@ interface GameState {
   maxDigits: number;
   carryUp: boolean;
   borrowDown: boolean;
+  soundEnabled: boolean;
 }
 
 // アクションの型定義
@@ -45,7 +46,8 @@ type GameAction =
   | { type: 'SET_CALC_TYPE'; payload: { calcType: string } }
   | { type: 'SET_MAX_DIGITS'; payload: { maxDigits: number } }
   | { type: 'SET_CARRY_UP'; payload: { carryUp: boolean } }
-  | { type: 'SET_BORROW_DOWN'; payload: { borrowDown: boolean } };
+  | { type: 'SET_BORROW_DOWN'; payload: { borrowDown: boolean } }
+  | { type: 'SET_SOUND_ENABLED'; payload: { soundEnabled: boolean } };
 
 // 初期状態
 const initialState: GameState = {
@@ -58,6 +60,7 @@ const initialState: GameState = {
   maxDigits: 1,
   carryUp: false,
   borrowDown: false,
+  soundEnabled: true,
 }
 
 // Reducer
@@ -105,7 +108,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       };
     }
     case 'RESET':
-      return { ...initialState, users: state.users, currentUser: state.currentUser };
+      return { ...initialState, users: state.users, currentUser: state.currentUser, soundEnabled: state.soundEnabled };
     case 'ADD_USER': {
       const newUser: User = { id: crypto.randomUUID(), name: action.payload.name };
       return { ...state, users: [...state.users, newUser], currentUser: newUser };
@@ -124,6 +127,8 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       return { ...state, carryUp: action.payload.carryUp };
     case 'SET_BORROW_DOWN':
       return { ...state, borrowDown: action.payload.borrowDown };
+    case 'SET_SOUND_ENABLED':
+      return { ...state, soundEnabled: action.payload.soundEnabled };
     default:
       return state;
   }
