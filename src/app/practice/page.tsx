@@ -80,11 +80,11 @@ export default function PracticePage() {
           もんだい
         </Heading>
         <Text fontSize="lg">のこりじかん: {timeLeft}びょう</Text>
-        <Box fontSize="2xl" fontWeight="bold" data-testid="question-text">
-          {currentQuestion.q}
-        </Box>
         <Box minH="60px"> {/* Adjust minH for feedback animation */}
           <FeedbackDisplay show={showFeedback} isCorrect={isCorrect} />
+        </Box>
+        <Box fontSize="2xl" fontWeight="bold" data-testid="question-text">
+          {currentQuestion.q}
         </Box>
         <Input
           value={answer}
