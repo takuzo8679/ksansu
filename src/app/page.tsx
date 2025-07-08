@@ -61,6 +61,14 @@ export default function Home() {
   }, [borrowDown])
 
   const startGame = () => {
+    const questions = Array.from({ length: 10 }, () =>
+      generateQuestion(
+        calcType as 'add' | 'sub' | 'mul' | 'div',
+        parseInt(maxDigits),
+        carryUp === 'true',
+        borrowDown === 'true',
+      ),
+    )
     dispatch({ type: 'SET_QUESTIONS', payload: { questions } })
     router.push('/practice')
   }
@@ -78,33 +86,33 @@ export default function Home() {
           <Stack spacing={4}>
             <RadioGroup onChange={setCalcType} value={calcType}>
               <Stack direction="row">
-                <Radio value="add">たしざん</Radio>
-                <Radio value="sub">ひきざん</Radio>
-                <Radio value="mul">かけざん</Radio>
-                <Radio value="div">わりざん</Radio>
+                <Radio value="add" data-testid="calc-type-add">たしざん</Radio>
+                <Radio value="sub" data-testid="calc-type-sub">ひきざん</Radio>
+                <Radio value="mul" data-testid="calc-type-mul">かけざん</Radio>
+                <Radio value="div" data-testid="calc-type-div">わりざん</Radio>
               </Stack>
             </RadioGroup>
             <RadioGroup onChange={setMaxDigits} value={maxDigits}>
               <Stack direction="row">
-                <Radio value="1">1けた</Radio>
-                <Radio value="2">2けた</Radio>
-                <Radio value="3">3けた</Radio>
-                <Radio value="4">4けた</Radio>
+                <Radio value="1" data-testid="max-digits-1">1けた</Radio>
+                <Radio value="2" data-testid="max-digits-2">2けた</Radio>
+                <Radio value="3" data-testid="max-digits-3">3けた</Radio>
+                <Radio value="4" data-testid="max-digits-4">4けた</Radio>
               </Stack>
             </RadioGroup>
             {calcType === 'add' && (
               <RadioGroup onChange={setCarryUp} value={carryUp}>
                 <Stack direction="row">
-                  <Radio value="true">くりあがりあり</Radio>
-                  <Radio value="false">くりあがりなし</Radio>
+                  <Radio value="true" data-testid="carry-up-true">くりあがりあり</Radio>
+                  <Radio value="false" data-testid="carry-up-false">くりあがりなし</Radio>
                 </Stack>
               </RadioGroup>
             )}
             {calcType === 'sub' && (
               <RadioGroup onChange={setBorrowDown} value={borrowDown}>
                 <Stack direction="row">
-                  <Radio value="true">くりさがりあり</Radio>
-                  <Radio value="false">くりさがりなし</Radio>
+                  <Radio value="true" data-testid="borrow-down-true">くりさがりあり</Radio>
+                  <Radio value="false" data-testid="borrow-down-false">くりさがりなし</Radio>
                 </Stack>
               </RadioGroup>
             )}

@@ -9,7 +9,11 @@ export default function PracticePage() {
   const { state, dispatch } = useGame()
   const router = useRouter()
   const [answer, setAnswer] = useState('')
-  const [timeLeft, setTimeLeft] = useState(120) // 120秒
+  // e2eテストモードの場合は5秒、それ以外は120秒
+  const initialTime = process.env.NEXT_PUBLIC_E2E_TEST_MODE === 'true' ? 5 : 120;
+  const [timeLeft, setTimeLeft] = useState(initialTime);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const [feedbackClass, setFeedbackClass] = useState<string | undefined>(undefined);
 
   const { questions, currentQuestionIndex } = state
 
@@ -33,8 +37,28 @@ export default function PracticePage() {
   }, [timeLeft, router])
 
   const handleAnswer = () => {
-    dispatch({ type: 'ANSWER', payload: { answer: parseInt(answer, 10) } })
-    setAnswer('')
+    const currentQuestion = questions[currentQuestionIndex];
+    const isCorrect = currentQuestion.a === parseInt(answer, 10);
+
+    dispatch({ type: 'ANSWER', payload: { answer: parseInt(answer, 10) } });
+    setAnswer('');
+
+    if (isCorrect) {
+      setFeedbackMessage('せいかい！');
+      setFeedbackClass('feedback correct');
+    } else {
+      setFeedbackMessage('まちがい！');
+      setFeedbackClass('feedback incorrect');
+    }
+
+    // Clear feedback after a short delay
+    const feedbackTimer = setTimeout(() => {
+      setFeedbackMessage(null);
+      setFeedbackClass(undefined);
+    }, 1500); // Display feedback for 1.5 seconds
+
+    // Cleanup function for useEffect (though not strictly necessary here as it's a one-off)
+    // return () => clearTimeout(feedbackTimer);
   }
 
   if (questions.length === 0 || currentQuestionIndex >= questions.length) {
@@ -48,9 +72,14 @@ export default function PracticePage() {
           もんだい {currentQuestionIndex + 1}
         </Heading>
         <Text fontSize="lg">のこりじかん: {timeLeft}びょう</Text>
-        <Box fontSize="2xl" fontWeight="bold">
+        <Box fontSize="2xl" fontWeight="bold" data-testid="question-text">
           {questions[currentQuestionIndex].q}
         </Box>
+        {feedbackMessage && (
+          <Text fontSize="xl" fontWeight="bold" className={feedbackClass} data-testid="feedback-message">
+            {feedbackMessage}
+          </Text>
+        )}
         <VStack spacing={4} w="100%" maxW="xs">
           <Input
             type="number"
@@ -60,6 +89,7 @@ export default function PracticePage() {
             onKeyDown={(e) => e.key === 'Enter' && handleAnswer()}
             textAlign="center"
             size="lg"
+            data-testid="answer-input"
           />
           <Button onClick={handleAnswer} colorScheme="teal" w="100%" size="lg">
             こたえあわせ

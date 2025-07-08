@@ -7,6 +7,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: [['html', { open: 'never' }]],
+  timeout: 30 * 1000, // Global test timeout: 30 seconds
   use: {
     trace: 'on-first-retry',
     baseURL: 'http://localhost:3000',
@@ -19,8 +20,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
+    command: 'NEXT_PUBLIC_E2E_TEST_MODE=true npm run build && NEXT_PUBLIC_E2E_TEST_MODE=true npm run start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
+    timeout: 60 * 1000, // 60 seconds for server startup
   },
 })
