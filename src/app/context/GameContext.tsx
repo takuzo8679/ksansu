@@ -33,6 +33,8 @@ interface GameState {
   borrowDown: boolean;
   soundEnabled: boolean;
   lastQuestion: Question | null;
+  highScore: number;
+  newHighScoreAchieved: boolean;
 }
 
 // アクションの型定義
@@ -48,7 +50,9 @@ type GameAction =
   | { type: 'SET_MAX_DIGITS'; payload: { maxDigits: number } }
   | { type: 'SET_CARRY_UP'; payload: { carryUp: boolean } }
   | { type: 'SET_BORROW_DOWN'; payload: { borrowDown: boolean } }
-  | { type: 'SET_SOUND_ENABLED'; payload: { soundEnabled: boolean } };
+  | { type: 'SET_SOUND_ENABLED'; payload: { soundEnabled: boolean } }
+  | { type: 'SET_HIGH_SCORE'; payload: { score: number } }
+  | { type: 'RESET_NEW_HIGH_SCORE_FLAG' };
 
 // 初期状態
 const initialState: GameState = {
@@ -63,6 +67,8 @@ const initialState: GameState = {
   borrowDown: false,
   soundEnabled: true,
   lastQuestion: null,
+  highScore: 0,
+  newHighScoreAchieved: false,
 }
 
 // Reducer
@@ -104,12 +110,17 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
           }
         } while (newQuestion.q === state.currentQuestion.q);
 
+        const newScore = state.score + scoreToAdd;
+        const newHighScoreAchieved = newScore > state.highScore;
+
         return {
           ...state,
-          score: state.score + scoreToAdd,
+          score: newScore,
           correctAnswersCount: state.correctAnswersCount + correctAnswersCountIncrement,
           currentQuestion: newQuestion,
           lastQuestion: state.currentQuestion,
+          highScore: newHighScoreAchieved ? newScore : state.highScore,
+          newHighScoreAchieved: newHighScoreAchieved,
         };
       }
 
@@ -142,6 +153,10 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       return { ...state, borrowDown: action.payload.borrowDown };
     case 'SET_SOUND_ENABLED':
       return { ...state, soundEnabled: action.payload.soundEnabled };
+    case 'SET_HIGH_SCORE':
+      return { ...state, highScore: action.payload.score };
+    case 'RESET_NEW_HIGH_SCORE_FLAG':
+      return { ...state, newHighScoreAchieved: false };
     default:
       return state;
   }
