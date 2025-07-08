@@ -19,6 +19,7 @@ describe('GameContext', () => {
     return (
       <div>
         <div data-testid="score">{state.score}</div>
+        <div data-testid="correct-answers-count">{state.correctAnswersCount}</div>
         <div data-testid="current-question-index">{state.currentQuestionIndex}</div>
         {state.questions.length > 0 && state.currentQuestionIndex < state.questions.length && (
           <div data-testid="question">{state.questions[state.currentQuestionIndex].q}</div>
@@ -55,6 +56,7 @@ describe('GameContext', () => {
   it('should initialize with a score of 0 and no questions', () => {
     renderWithGameProvider();
     expect(screen.getByTestId('score').textContent).toBe('0');
+    expect(screen.getByTestId('correct-answers-count').textContent).toBe('0');
     expect(screen.getByTestId('current-question-index').textContent).toBe('0');
     expect(screen.queryByTestId('question')).toBeNull();
   });
@@ -105,6 +107,7 @@ describe('GameContext', () => {
         });
 
         expect(screen.getByTestId('score').textContent).toBe(expectedScore.toString());
+        expect(screen.getByTestId('correct-answers-count').textContent).toBe('1');
       }
     );
 
@@ -119,6 +122,7 @@ describe('GameContext', () => {
       });
 
       expect(screen.getByTestId('score').textContent).toBe('0');
+      expect(screen.getByTestId('correct-answers-count').textContent).toBe('0');
     });
   });
 
@@ -134,12 +138,14 @@ describe('GameContext', () => {
 
     // Score should be updated to 1 (base) + 1 (digit) = 2
     expect(screen.getByTestId('score').textContent).toBe('2'); 
+    expect(screen.getByTestId('correct-answers-count').textContent).toBe('1');
 
     await act(async () => {
       await userEvent.click(screen.getByText('Reset'));
     });
 
     expect(screen.getByTestId('score').textContent).toBe('0');
+    expect(screen.getByTestId('correct-answers-count').textContent).toBe('0');
     expect(screen.getByTestId('current-question-index').textContent).toBe('0');
     expect(screen.queryByTestId('question')).toBeNull();
   });

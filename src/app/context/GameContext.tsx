@@ -7,6 +7,7 @@ interface GameState {
   questions: { q: string; a: number; calcType: string; maxDigits: number; carryUp: boolean; borrowDown: boolean }[]
   currentQuestionIndex: number
   score: number
+  correctAnswersCount: number // 正答数を追加
 }
 
 // アクションの型定義
@@ -20,6 +21,7 @@ const initialState: GameState = {
   questions: [],
   currentQuestionIndex: 0,
   score: 0,
+  correctAnswersCount: 0, // 初期化
 }
 
 // Reducer
@@ -31,6 +33,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const currentQuestion = state.questions[state.currentQuestionIndex]
       const isCorrect = currentQuestion.a === action.payload.answer
       let scoreToAdd = 0
+      let correctAnswersCountIncrement = 0
 
       if (isCorrect) {
         // 基礎点
@@ -47,12 +50,14 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         if (currentQuestion.carryUp || currentQuestion.borrowDown) {
           scoreToAdd += 1
         }
+        correctAnswersCountIncrement = 1 // 正解の場合のみインクリメント
       }
 
       return {
         ...state,
         score: state.score + scoreToAdd,
         currentQuestionIndex: state.currentQuestionIndex + 1,
+        correctAnswersCount: state.correctAnswersCount + correctAnswersCountIncrement, // 正答数を更新
       }
     }
     case 'RESET':
