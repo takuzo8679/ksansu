@@ -7,11 +7,15 @@ interface FeedbackDisplayProps {
 }
 
 const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ message, className }) => {
-  if (!message) return null;
-
   return (
-    <Text fontSize="xl" fontWeight="bold" className={className} data-testid="feedback-message">
-      {message}
+    <Text 
+      fontSize="xl" 
+      fontWeight="bold" 
+      className={className} 
+      data-testid="feedback-message"
+      style={{ visibility: message ? 'visible' : 'hidden' }} // Control visibility
+    >
+      {message || ''} {/* Render empty string when hidden to maintain space */}
     </Text>
   );
 };

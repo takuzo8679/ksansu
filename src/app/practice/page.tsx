@@ -76,7 +76,9 @@ export default function PracticePage() {
         <Box fontSize="2xl" fontWeight="bold" data-testid="question-text">
           {questions[currentQuestionIndex].q}
         </Box>
-        <FeedbackDisplay message={feedbackMessage} className={feedbackClass} />
+        <Box minH="30px"> {/* Adjust minH based on the height of your feedback message */}
+          <FeedbackDisplay message={feedbackMessage} className={feedbackClass} />
+        </Box>
         <VStack spacing={4} w="100%" maxW="xs">
           <Input
             type="number"
