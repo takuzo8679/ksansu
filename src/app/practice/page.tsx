@@ -3,7 +3,7 @@
 import { Box, Button, Heading, Input, VStack } from '@chakra-ui/react'
 import { useGame } from '../context/GameContext'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function PracticePage() {
   const { state, dispatch } = useGame()
@@ -12,15 +12,18 @@ export default function PracticePage() {
 
   const { questions, currentQuestionIndex } = state
 
+  useEffect(() => {
+    if (questions.length > 0 && currentQuestionIndex >= questions.length) {
+      router.push('/result')
+    }
+  }, [currentQuestionIndex, questions.length, router])
+
   const handleAnswer = () => {
     dispatch({ type: 'ANSWER', payload: { answer: parseInt(answer, 10) } })
     setAnswer('')
-    if (currentQuestionIndex === questions.length - 1) {
-      router.push('/result')
-    }
   }
 
-  if (questions.length === 0) {
+  if (questions.length === 0 || currentQuestionIndex >= questions.length) {
     return <p>...loading</p>
   }
 
@@ -30,16 +33,23 @@ export default function PracticePage() {
         <Heading as="h1" size="xl">
           もんだい {currentQuestionIndex + 1}
         </Heading>
-        <Box>{questions[currentQuestionIndex].q}</Box>
-        <Input
-          placeholder="こたえ"
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleAnswer()}
-        />
-        <Button onClick={handleAnswer} colorScheme="teal">
-          こたえあわせ
-        </Button>
+        <Box fontSize="2xl" fontWeight="bold">
+          {questions[currentQuestionIndex].q}
+        </Box>
+        <VStack spacing={4} w="100%" maxW="xs">
+          <Input
+            type="number"
+            placeholder="こたえ"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAnswer()}
+            textAlign="center"
+            size="lg"
+          />
+          <Button onClick={handleAnswer} colorScheme="teal" w="100%" size="lg">
+            こたえあわせ
+          </Button>
+        </VStack>
       </VStack>
     </Box>
   )
