@@ -32,6 +32,7 @@ interface GameState {
   carryUp: boolean;
   borrowDown: boolean;
   soundEnabled: boolean;
+  lastQuestion: Question | null;
 }
 
 // アクションの型定義
@@ -61,6 +62,7 @@ const initialState: GameState = {
   carryUp: false,
   borrowDown: false,
   soundEnabled: true,
+  lastQuestion: null,
 }
 
 // Reducer
@@ -84,19 +86,30 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         if (state.currentQuestion.carryUp || state.currentQuestion.borrowDown) scoreToAdd += 1;
         correctAnswersCountIncrement = 1;
 
-        // 正解の場合、新しい問題を生成
-        const newQuestion = generateQuestion(
-          state.calcType as 'add' | 'sub' | 'mul' | 'div',
-          state.maxDigits,
-          state.carryUp,
-          state.borrowDown
-        );
+        let newQuestion: Question;
+        let attempts = 0;
+        const maxAttempts = 100; // 無限ループ防止のための最大試行回数
+
+        do {
+          newQuestion = generateQuestion(
+            state.calcType as 'add' | 'sub' | 'mul' | 'div',
+            state.maxDigits,
+            state.carryUp,
+            state.borrowDown
+          );
+          attempts++;
+          if (attempts > maxAttempts) {
+            console.warn('Max attempts reached, could not generate a different question.');
+            break; // 異なる問題が生成できない場合はループを抜ける
+          }
+        } while (newQuestion.q === state.currentQuestion.q);
 
         return {
           ...state,
           score: state.score + scoreToAdd,
           correctAnswersCount: state.correctAnswersCount + correctAnswersCountIncrement,
           currentQuestion: newQuestion,
+          lastQuestion: state.currentQuestion,
         };
       }
 
