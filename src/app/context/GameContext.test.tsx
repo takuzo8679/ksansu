@@ -21,6 +21,8 @@ describe('GameContext', () => {
         <div data-testid="score">{state.score}</div>
         <div data-testid="correct-answers-count">{state.correctAnswersCount}</div>
         <div data-testid="current-question-index">{state.currentQuestionIndex}</div>
+        <div data-testid="current-user">{state.currentUser?.name}</div>
+        <div data-testid="users-count">{state.users.length}</div>
         {state.questions.length > 0 && state.currentQuestionIndex < state.questions.length && (
           <div data-testid="question">{state.questions[state.currentQuestionIndex].q}</div>
         )}
@@ -34,6 +36,12 @@ describe('GameContext', () => {
           onClick={() => dispatch({ type: 'ANSWER', payload: { answer: 1 } })}
         >
           Answer 1
+        </button>
+        <button onClick={() => dispatch({ type: 'ADD_USER', payload: { name: 'Test User' } })}>
+          Add User
+        </button>
+        <button onClick={() => dispatch({ type: 'SWITCH_USER', payload: { userId: 'user-2' } })}>
+          Switch User
         </button>
       </div>
     );
@@ -49,8 +57,8 @@ describe('GameContext', () => {
   };
 
   beforeEach(() => {
-    // Reset the context before each test if necessary
-    // For functional components, context state is usually reset by re-rendering
+    // Reset localStorage before each test
+    localStorage.clear();
   });
 
   it('should initialize with a score of 0 and no questions', () => {
@@ -126,11 +134,18 @@ describe('GameContext', () => {
     });
   });
 
-  it('should reset game state', async () => {
+  it('should reset game state but keep user state', async () => {
     const questions = [
       { q: '5 + 0 =', a: 5, calcType: 'add', maxDigits: 1, carryUp: false, borrowDown: false }, // Question where answer is 5
     ];
     renderWithGameProvider(questions);
+
+    await act(async () => {
+      await userEvent.click(screen.getByText('Add User'));
+    });
+
+    expect(screen.getByTestId('current-user').textContent).toBe('Test User');
+    expect(screen.getByTestId('users-count').textContent).toBe('1');
 
     await act(async () => {
       await userEvent.click(screen.getByText('Answer 5'));
@@ -148,5 +163,25 @@ describe('GameContext', () => {
     expect(screen.getByTestId('correct-answers-count').textContent).toBe('0');
     expect(screen.getByTestId('current-question-index').textContent).toBe('0');
     expect(screen.queryByTestId('question')).toBeNull();
+    // User state should be preserved
+    expect(screen.getByTestId('current-user').textContent).toBe('Test User');
+    expect(screen.getByTestId('users-count').textContent).toBe('1');
+  });
+
+  describe('user management', () => {
+    it('should add a new user and set it as current user', async () => {
+      renderWithGameProvider();
+      expect(screen.getByTestId('users-count').textContent).toBe('0');
+      expect(screen.getByTestId('current-user').textContent).toBe('');
+
+      await act(async () => {
+        await userEvent.click(screen.getByText('Add User'));
+      });
+
+      expect(screen.getByTestId('users-count').textContent).toBe('1');
+      expect(screen.getByTestId('current-user').textContent).toBe('Test User');
+    });
+
+    
   });
 });

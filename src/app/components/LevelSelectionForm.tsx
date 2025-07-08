@@ -1,7 +1,7 @@
-import { Box, Heading, Radio, RadioGroup, Stack, VStack } from '@chakra-ui/react';
+import { Box, Heading, Radio, RadioGroup, Stack } from '@chakra-ui/react';
 import React from 'react';
 
-interface PracticeSettingsFormProps {
+interface LevelSelectionFormProps {
   calcType: string;
   setCalcType: (value: string) => void;
   maxDigits: string;
@@ -12,7 +12,7 @@ interface PracticeSettingsFormProps {
   setBorrowDown: (value: string) => void;
 }
 
-const PracticeSettingsForm: React.FC<PracticeSettingsFormProps> = ({
+const LevelSelectionForm: React.FC<LevelSelectionFormProps> = ({
   calcType,
   setCalcType,
   maxDigits,
@@ -65,4 +65,4 @@ const PracticeSettingsForm: React.FC<PracticeSettingsFormProps> = ({
   );
 };
 
-export default PracticeSettingsForm;
+export default LevelSelectionForm;

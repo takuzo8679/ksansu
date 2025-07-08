@@ -13,8 +13,8 @@ export default function PracticePage() {
   // e2eテストモードの場合は5秒、それ以外は120秒
   const initialTime = process.env.NEXT_PUBLIC_E2E_TEST_MODE === 'true' ? 5 : 120;
   const [timeLeft, setTimeLeft] = useState(initialTime);
-  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
-  const [feedbackClass, setFeedbackClass] = useState<string | undefined>(undefined);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
   const { questions, currentQuestionIndex } = state
 
@@ -39,27 +39,17 @@ export default function PracticePage() {
 
   const handleAnswer = () => {
     const currentQuestion = questions[currentQuestionIndex];
-    const isCorrect = currentQuestion.a === parseInt(answer, 10);
+    const correct = currentQuestion.a === parseInt(answer, 10);
+
+    setIsCorrect(correct);
+    setShowFeedback(true);
 
     dispatch({ type: 'ANSWER', payload: { answer: parseInt(answer, 10) } });
     setAnswer('');
 
-    if (isCorrect) {
-      setFeedbackMessage('せいかい！');
-      setFeedbackClass('feedback correct');
-    } else {
-      setFeedbackMessage('まちがい！');
-      setFeedbackClass('feedback incorrect');
-    }
-
-    // Clear feedback after a short delay
-    const feedbackTimer = setTimeout(() => {
-      setFeedbackMessage(null);
-      setFeedbackClass(undefined);
+    setTimeout(() => {
+      setShowFeedback(false);
     }, 1500); // Display feedback for 1.5 seconds
-
-    // Cleanup function for useEffect (though not strictly necessary here as it's a one-off)
-    // return () => clearTimeout(feedbackTimer);
   }
 
   if (questions.length === 0 || currentQuestionIndex >= questions.length) {
@@ -76,8 +66,8 @@ export default function PracticePage() {
         <Box fontSize="2xl" fontWeight="bold" data-testid="question-text">
           {questions[currentQuestionIndex].q}
         </Box>
-        <Box minH="30px"> {/* Adjust minH based on the height of your feedback message */}
-          <FeedbackDisplay message={feedbackMessage} className={feedbackClass} />
+        <Box minH="60px"> {/* Adjust minH for feedback animation */}
+          <FeedbackDisplay show={showFeedback} isCorrect={isCorrect} />
         </Box>
         <VStack spacing={4} w="100%" maxW="xs">
           <Input

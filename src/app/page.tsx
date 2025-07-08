@@ -5,15 +5,17 @@ import {
   Button,
   Heading,
   VStack,
+  Text,
 } from '@chakra-ui/react'
 import { useGame } from './context/GameContext'
 import { generateQuestion } from '../utils/questionGenerator'
 import { useRouter } from 'next/navigation'
 import useLocalStorage from '../hooks/useLocalStorage'
-import PracticeSettingsForm from './components/PracticeSettingsForm'
+import LevelSelectionForm from './components/LevelSelectionForm'
+import UserManagement from './components/UserManagement'
 
 export default function Home() {
-  const { dispatch } = useGame()
+  const { state, dispatch } = useGame()
   const router = useRouter()
   const [calcType, setCalcType] = useLocalStorage('calcType', 'add')
   const [maxDigits, setMaxDigits] = useLocalStorage('maxDigits', '1')
@@ -21,7 +23,7 @@ export default function Home() {
   const [borrowDown, setBorrowDown] = useLocalStorage('borrowDown', 'false')
 
   const startGame = () => {
-    dispatch({ type: 'RESET' }); // ゲーム開始時に状態をリセット
+    dispatch({ type: 'RESET' });
     const questions = Array.from({ length: 10 }, () =>
       generateQuestion(
         calcType as 'add' | 'sub' | 'mul' | 'div',
@@ -40,7 +42,11 @@ export default function Home() {
         <Heading as="h1" size="2xl">
           けいさんすう
         </Heading>
-        <PracticeSettingsForm
+        {state.currentUser && (
+          <Text fontSize="xl">こんにちは、{state.currentUser.name}さん！</Text>
+        )}
+        <UserManagement />
+        <LevelSelectionForm
           calcType={calcType}
           setCalcType={setCalcType}
           maxDigits={maxDigits}
@@ -54,6 +60,8 @@ export default function Home() {
           colorScheme="teal"
           size="lg"
           onClick={startGame}
+          isDisabled={!state.currentUser}
+          data-testid="start-button"
         >
           れんしゅうをはじめる
         </Button>

@@ -1,22 +1,34 @@
 import { Text } from '@chakra-ui/react';
+import { motion } from 'framer-motion';
 import React from 'react';
+import useSound from '../../hooks/useSound';
 
 interface FeedbackDisplayProps {
-  message: string | null;
-  className: string | undefined;
+  isCorrect: boolean | null;
+  show: boolean;
 }
 
-const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ message, className }) => {
+const MotionText = motion(Text);
+
+const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ isCorrect, show }) => {
+  useSound({ isCorrect, play: show });
+
+  const message = isCorrect ? 'せいかい！' : 'ざんねん！';
+  const color = isCorrect ? 'green.500' : 'red.500';
+
   return (
-    <Text 
-      fontSize="xl" 
-      fontWeight="bold" 
-      className={className} 
+    <MotionText
+      fontSize="4xl"
+      fontWeight="bold"
+      color={color}
       data-testid="feedback-message"
-      style={{ visibility: message ? 'visible' : 'hidden' }} // Control visibility
+      initial={{ opacity: 0, scale: 0.5 }}
+      animate={{ opacity: show ? 1 : 0, scale: show ? 1 : 0.5 }}
+      transition={{ duration: 0.3 }}
+      style={{ visibility: show ? 'visible' : 'hidden' }}
     >
-      {message || ''} {/* Render empty string when hidden to maintain space */}
-    </Text>
+      {message}
+    </MotionText>
   );
 };
 
