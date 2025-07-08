@@ -9,6 +9,7 @@ const FEEDBACK_CORRECT_SELECTOR = '.feedback.correct';
 const FEEDBACK_MESSAGE_TEST_ID = 'feedback-message';
 const QUESTION_TEXT_TEST_ID = 'question-text';
 const ANSWER_INPUT_TEST_ID = 'answer-input';
+const ANOTHER_TRY_BUTTON = 'もういっかい';
 
 // Common setup for all tests
 test.beforeEach(async ({ page }) => {
@@ -87,5 +88,38 @@ test('should transition to result page after timer expires', async ({ page }) =>
   await page.waitForTimeout(5000);
 
   await page.waitForURL(/.*result/);
+  await page.waitForLoadState('domcontentloaded');
   await expect(page.getByRole('heading', { name: RESULT_PAGE_HEADING })).toBeVisible({ timeout: 10000 });
+});
+
+test('should preserve selected practice settings after returning from result page', async ({ page }) => {
+  // Navigate to home page (already done by beforeEach, but we need to re-navigate to set options)
+  await page.goto('/');
+
+  // Select non-default options
+  await expect(page.getByTestId('calc-type-sub')).toBeVisible({ timeout: 10000 });
+  await page.getByTestId('calc-type-sub').check();
+
+  await expect(page.getByTestId('max-digits-3')).toBeVisible({ timeout: 10000 });
+  await page.getByTestId('max-digits-3').check();
+
+  // Start practice
+  await page.getByRole('button', { name: START_PRACTICE_BUTTON }).click();
+  await page.waitForURL(/.*practice/, { timeout: 10000 });
+  await expect(page.getByRole('heading', { name: PRACTICE_PAGE_HEADING })).toBeVisible({ timeout: 10000 });
+
+  // Simulate completing practice by waiting for timer to expire
+  await page.waitForTimeout(5000); // Use the shortened e2e timer
+  await page.waitForURL(/.*result/);
+  await page.waitForLoadState('domcontentloaded');
+  await expect(page.getByRole('heading', { name: RESULT_PAGE_HEADING })).toBeVisible({ timeout: 10000 });
+
+  // Return to home page
+  await page.waitForLoadState('networkidle'); // Wait for network to be idle
+  await page.getByText(ANOTHER_TRY_BUTTON).click(); // Click by text content
+  await page.waitForURL('/', { timeout: 10000 });
+
+  // Assert that previously selected options are still checked
+  await expect(page.getByTestId('calc-type-sub')).toBeChecked();
+  await expect(page.getByTestId('max-digits-3')).toBeChecked();
 });

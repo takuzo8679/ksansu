@@ -7,7 +7,6 @@ import {
   VStack,
 } from '@chakra-ui/react'
 import { useGame } from './context/GameContext'
-import { useEffect } from 'react'
 import { generateQuestion } from '../utils/questionGenerator'
 import { useRouter } from 'next/navigation'
 import useLocalStorage from '../hooks/useLocalStorage'
@@ -21,11 +20,8 @@ export default function Home() {
   const [carryUp, setCarryUp] = useLocalStorage('carryUp', 'false')
   const [borrowDown, setBorrowDown] = useLocalStorage('borrowDown', 'false')
 
-  useEffect(() => {
-    dispatch({ type: 'RESET' })
-  }, [dispatch])
-
   const startGame = () => {
+    dispatch({ type: 'RESET' }); // ゲーム開始時に状態をリセット
     const questions = Array.from({ length: 10 }, () =>
       generateQuestion(
         calcType as 'add' | 'sub' | 'mul' | 'div',
