@@ -61,17 +61,6 @@ export default function Home() {
   }, [borrowDown])
 
   const startGame = () => {
-    const questions = []
-    const digits = parseInt(maxDigits, 10)
-    const carry = carryUp === 'true'
-    const borrow = borrowDown === 'true'
-
-    for (let i = 0; i < 10; i++) {
-      const newQuestion = generateQuestion(calcType, digits, carry, borrow)
-      questions.push(newQuestion)
-      console.log(`Generated question ${i + 1}:`, newQuestion)
-    }
-    console.log('Final generated questions in page.tsx:', questions)
     dispatch({ type: 'SET_QUESTIONS', payload: { questions } })
     router.push('/practice')
   }

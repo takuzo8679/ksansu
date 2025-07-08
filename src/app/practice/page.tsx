@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react'
 
 export default function PracticePage() {
   const { state, dispatch } = useGame()
-  console.log('PracticePage state:', state)
   const router = useRouter()
   const [answer, setAnswer] = useState('')
   const [timeLeft, setTimeLeft] = useState(120) // 120秒

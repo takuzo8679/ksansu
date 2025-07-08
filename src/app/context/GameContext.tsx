@@ -26,7 +26,6 @@ const initialState: GameState = {
 const gameReducer = (state: GameState, action: GameAction): GameState => {
   switch (action.type) {
     case 'SET_QUESTIONS':
-      console.log('SET_QUESTIONS action received with questions:', action.payload.questions)
       return { ...state, questions: action.payload.questions }
     case 'ANSWER': {
       const currentQuestion = state.questions[state.currentQuestionIndex]
