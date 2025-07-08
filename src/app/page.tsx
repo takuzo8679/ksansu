@@ -24,16 +24,16 @@ export default function Home() {
 
   const startGame = () => {
     dispatch({ type: 'RESET' });
-    const questions = Array.from({ length: 10 }, () =>
-      generateQuestion(
-        calcType as 'add' | 'sub' | 'mul' | 'div',
-        parseInt(maxDigits),
-        carryUp === 'true',
-        borrowDown === 'true',
-      ),
-    )
-    dispatch({ type: 'SET_QUESTIONS', payload: { questions } })
-    router.push('/practice')
+    dispatch({
+      type: 'SET_SETTINGS',
+      payload: {
+        calcType: calcType,
+        maxDigits: parseInt(maxDigits),
+        carryUp: carryUp === 'true',
+        borrowDown: borrowDown === 'true',
+      },
+    });
+    router.push('/practice');
   }
 
   return (

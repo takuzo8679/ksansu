@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 // Constants for selectors and text
 const START_PRACTICE_BUTTON = 'れんしゅうをはじめる';
-const PRACTICE_PAGE_HEADING = 'もんだい 1';
+const PRACTICE_PAGE_HEADING = 'もんだい';
 const RESULT_PAGE_HEADING = 'けっか';
 const ANSWER_BUTTON = 'こたえる';
 const FEEDBACK_CORRECT_SELECTOR = '.feedback.correct';
@@ -64,9 +64,29 @@ test.describe('Practice Flow', () => {
     await expect(page.getByRole('heading', { name: PRACTICE_PAGE_HEADING })).toBeVisible({ timeout: 10000 });
   });
 
+  test('should not advance question on incorrect answer', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: PRACTICE_PAGE_HEADING })).toBeVisible({ timeout: 10000 });
+    const initialQuestionText = await page.getByTestId(QUESTION_TEXT_TEST_ID).innerText();
+
+    // Enter an incorrect answer
+    await page.getByTestId(ANSWER_INPUT_TEST_ID).fill('999'); // Assuming 999 is always incorrect
+    await page.getByTestId(ANSWER_INPUT_TEST_ID).press('Enter');
+
+    // Expect feedback for incorrect answer
+    await expect(page.getByTestId(FEEDBACK_MESSAGE_TEST_ID)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId(FEEDBACK_MESSAGE_TEST_ID)).toHaveText('ざんねん！');
+
+    // Wait for feedback to disappear
+    await page.waitForTimeout(1500);
+
+    // Expect the question to remain the same
+    await expect(page.getByTestId(QUESTION_TEXT_TEST_ID)).toHaveText(initialQuestionText);
+    await expect(page.getByRole('heading', { name: PRACTICE_PAGE_HEADING })).toBeVisible({ timeout: 10000 }); // Still on question 1
+  });
+
   test('should allow user to practice addition and check score', async ({ page }) => {
     // Solve 3 questions
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 0; i < 3; i++) {
       await expect(page.getByTestId(QUESTION_TEXT_TEST_ID)).toBeVisible({ timeout: 10000 });
       const questionText = await page.getByTestId(QUESTION_TEXT_TEST_ID).innerText();
       const match = questionText.match(/(\d+)\s*\+\s*(\d+)\s*=/);
@@ -86,9 +106,9 @@ test.describe('Practice Flow', () => {
 
         await page.waitForTimeout(1500);
 
-        if (i < 3) {
-          await expect(page.getByRole('heading', { name: `もんだい ${i + 1}` })).toBeVisible({ timeout: 10000 });
-        }
+        // Check that question has changed
+        await expect(page.getByTestId(QUESTION_TEXT_TEST_ID)).not.toHaveText(questionText);
+
       } else {
         throw new Error('Could not parse question text: ' + questionText);
       }

@@ -6,25 +6,24 @@ import { useEffect } from 'react'
 
 describe('GameContext', () => {
   // Helper component to access context values
-  const TestComponent = ({ initialQuestions }: any) => {
+  const TestComponent = ({ initialQuestion }: any) => {
     const { state, dispatch } = useGame();
 
-    // Effect to set initial questions if provided
+    // Effect to set initial question if provided
     useEffect(() => {
-      if (initialQuestions) {
-        dispatch({ type: 'SET_QUESTIONS', payload: { questions: initialQuestions } });
+      if (initialQuestion) {
+        dispatch({ type: 'SET_CURRENT_QUESTION', payload: { question: initialQuestion } });
       }
-    }, [initialQuestions, dispatch]);
+    }, [initialQuestion, dispatch]);
 
     return (
       <div>
         <div data-testid="score">{state.score}</div>
         <div data-testid="correct-answers-count">{state.correctAnswersCount}</div>
-        <div data-testid="current-question-index">{state.currentQuestionIndex}</div>
         <div data-testid="current-user">{state.currentUser?.name}</div>
         <div data-testid="users-count">{state.users.length}</div>
-        {state.questions.length > 0 && state.currentQuestionIndex < state.questions.length && (
-          <div data-testid="question">{state.questions[state.currentQuestionIndex].q}</div>
+        {state.currentQuestion && (
+          <div data-testid="question">{state.currentQuestion.q}</div>
         )}
         <button onClick={() => dispatch({ type: 'RESET' })}>Reset</button>
         <button
@@ -48,10 +47,10 @@ describe('GameContext', () => {
   };
 
   // Helper to render the component wrapped in GameProvider
-  const renderWithGameProvider = (initialQuestions?: any) => {
+  const renderWithGameProvider = (initialQuestion?: any) => {
     return render(
       <GameProvider>
-        <TestComponent initialQuestions={initialQuestions} />
+        <TestComponent initialQuestion={initialQuestion} />
       </GameProvider>
     );
   };
@@ -61,31 +60,45 @@ describe('GameContext', () => {
     localStorage.clear();
   });
 
-  it('should initialize with a score of 0 and no questions', () => {
+  it('should initialize with a score of 0 and no current question', () => {
     renderWithGameProvider();
     expect(screen.getByTestId('score').textContent).toBe('0');
     expect(screen.getByTestId('correct-answers-count').textContent).toBe('0');
-    expect(screen.getByTestId('current-question-index').textContent).toBe('0');
     expect(screen.queryByTestId('question')).toBeNull();
   });
 
-  it('should set questions and update current question index', async () => {
-    const questions = [
-      { q: '1 + 1 =', a: 2, calcType: 'add', maxDigits: 1, carryUp: false, borrowDown: false },
-      { q: '2 + 2 =', a: 4, calcType: 'add', maxDigits: 1, carryUp: false, borrowDown: false },
-    ];
-    renderWithGameProvider(questions);
+  it('should set current question and update score on correct answer', async () => {
+    const initialQuestion = { q: '1 + 0 =', a: 1, calcType: 'add', maxDigits: 1, carryUp: false, borrowDown: false };
+    renderWithGameProvider(initialQuestion);
 
-    expect(screen.getByTestId('question').textContent).toBe('1 + 1 =');
-    expect(screen.getByTestId('current-question-index').textContent).toBe('0');
+    expect(screen.getByTestId('question').textContent).toBe('1 + 0 =');
 
     await act(async () => {
-      await userEvent.click(screen.getByText('Answer 5')); // Changed from Answer 2 to Answer 5
+      await userEvent.click(screen.getByText('Answer 1')); // Correct answer
     });
 
-    // After answering, currentQuestionIndex should increment
-    expect(screen.getByTestId('current-question-index').textContent).toBe('1');
-    expect(screen.getByTestId('question').textContent).toBe('2 + 2 =');
+    // Score should be updated
+    expect(screen.getByTestId('score').textContent).toBe('2'); // 1 (base) + 1 (digit)
+    expect(screen.getByTestId('correct-answers-count').textContent).toBe('1');
+    // Question should change
+    expect(screen.getByTestId('question').textContent).not.toBe('1 + 0 =');
+  });
+
+  it('should not change question on incorrect answer', async () => {
+    const initialQuestion = { q: '1 + 0 =', a: 1, calcType: 'add', maxDigits: 1, carryUp: false, borrowDown: false };
+    renderWithGameProvider(initialQuestion);
+
+    expect(screen.getByTestId('question').textContent).toBe('1 + 0 =');
+
+    await act(async () => {
+      await userEvent.click(screen.getByText('Answer 5')); // Incorrect answer
+    });
+
+    // Score should not be updated
+    expect(screen.getByTestId('score').textContent).toBe('0');
+    expect(screen.getByTestId('correct-answers-count').textContent).toBe('0');
+    // Question should remain the same
+    expect(screen.getByTestId('question').textContent).toBe('1 + 0 =');
   });
 
   describe('score calculation', () => {
@@ -104,10 +117,8 @@ describe('GameContext', () => {
     test.each(scoreTestCases)(
       'should calculate score correctly for %s', 
       async ({ type, digits, carry, borrow, expectedScore, description }) => {
-        const questions = [
-          { q: 'dummy', a: 1, calcType: type, maxDigits: digits, carryUp: carry, borrowDown: borrow },
-        ];
-        renderWithGameProvider(questions);
+        const initialQuestion = { q: 'dummy', a: 1, calcType: type, maxDigits: digits, carryUp: carry, borrowDown: borrow };
+        renderWithGameProvider(initialQuestion);
 
         // Simulate a correct answer
         await act(async () => {
@@ -120,10 +131,8 @@ describe('GameContext', () => {
     );
 
     it('should not update score for wrong answers', async () => {
-      const questions = [
-        { q: 'dummy', a: 5, calcType: 'add', maxDigits: 1, carryUp: false, borrowDown: false },
-      ];
-      renderWithGameProvider(questions);
+      const initialQuestion = { q: 'dummy', a: 5, calcType: 'add', maxDigits: 1, carryUp: false, borrowDown: false };
+      renderWithGameProvider(initialQuestion);
 
       await act(async () => {
         await userEvent.click(screen.getByText('Answer 1')); // Wrong answer
@@ -135,10 +144,8 @@ describe('GameContext', () => {
   });
 
   it('should reset game state but keep user state', async () => {
-    const questions = [
-      { q: '5 + 0 =', a: 5, calcType: 'add', maxDigits: 1, carryUp: false, borrowDown: false }, // Question where answer is 5
-    ];
-    renderWithGameProvider(questions);
+    const initialQuestion = { q: '5 + 0 =', a: 5, calcType: 'add', maxDigits: 1, carryUp: false, borrowDown: false };
+    renderWithGameProvider(initialQuestion);
 
     await act(async () => {
       await userEvent.click(screen.getByText('Add User'));
@@ -161,7 +168,6 @@ describe('GameContext', () => {
 
     expect(screen.getByTestId('score').textContent).toBe('0');
     expect(screen.getByTestId('correct-answers-count').textContent).toBe('0');
-    expect(screen.getByTestId('current-question-index').textContent).toBe('0');
     expect(screen.queryByTestId('question')).toBeNull();
     // User state should be preserved
     expect(screen.getByTestId('current-user').textContent).toBe('Test User');

@@ -6,7 +6,7 @@ import { useGame } from '../context/GameContext'
 
 export default function ResultPage() {
   const { state } = useGame()
-  const { questions, score, correctAnswersCount } = state
+  const { score, correctAnswersCount } = state
 
   return (
     <Box as="main" p={8}>
@@ -15,7 +15,7 @@ export default function ResultPage() {
           けっか
         </Heading>
         <Text>
-          {questions.length}もんちゅう {correctAnswersCount}もんせいかい！
+          せいかいすう: {correctAnswersCount}もん
         </Text>
         <Text>
           スコア: {score}

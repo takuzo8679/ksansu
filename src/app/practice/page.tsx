@@ -5,24 +5,31 @@ import { useGame } from '../context/GameContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import FeedbackDisplay from '../components/FeedbackDisplay'
+import { generateQuestion } from '../../utils/questionGenerator'
 
 export default function PracticePage() {
   const { state, dispatch } = useGame()
   const router = useRouter()
   const [answer, setAnswer] = useState('')
-  // e2eテストモードの場合は5秒、それ以外は120秒
-  const initialTime = process.env.NEXT_PUBLIC_E2E_TEST_MODE === 'true' ? 5 : 120;
+  const initialTime = process.env.NEXT_PUBLIC_E2E_TEST_MODE === 'true' ? 5 : 30;
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  const { questions, currentQuestionIndex } = state
+  const { currentQuestion, calcType, maxDigits, carryUp, borrowDown } = state;
 
+  // 初回レンダリング時に問題がなければ生成
   useEffect(() => {
-    if (questions.length > 0 && currentQuestionIndex >= questions.length) {
-      router.push('/result')
+    if (!currentQuestion) {
+      const newQuestion = generateQuestion(
+        calcType as 'add' | 'sub' | 'mul' | 'div',
+        maxDigits,
+        carryUp,
+        borrowDown
+      );
+      dispatch({ type: 'SET_CURRENT_QUESTION', payload: { question: newQuestion } });
     }
-  }, [currentQuestionIndex, questions.length, router])
+  }, [currentQuestion, calcType, maxDigits, carryUp, borrowDown, dispatch]);
 
   useEffect(() => {
     if (timeLeft === 0) {
@@ -38,7 +45,8 @@ export default function PracticePage() {
   }, [timeLeft, router])
 
   const handleAnswer = () => {
-    const currentQuestion = questions[currentQuestionIndex];
+    if (!currentQuestion) return; // 問題がなければ何もしない
+
     const correct = currentQuestion.a === parseInt(answer, 10);
 
     setIsCorrect(correct);
@@ -52,7 +60,7 @@ export default function PracticePage() {
     }, 1500); // Display feedback for 1.5 seconds
   }
 
-  if (questions.length === 0 || currentQuestionIndex >= questions.length) {
+  if (!currentQuestion) {
     return <p>...loading</p>
   }
 
@@ -60,11 +68,11 @@ export default function PracticePage() {
     <Box as="main" p={8}>
       <VStack spacing={8}>
         <Heading as="h1" size="xl">
-          もんだい {currentQuestionIndex + 1}
+          もんだい
         </Heading>
         <Text fontSize="lg">のこりじかん: {timeLeft}びょう</Text>
         <Box fontSize="2xl" fontWeight="bold" data-testid="question-text">
-          {questions[currentQuestionIndex].q}
+          {currentQuestion.q}
         </Box>
         <Box minH="60px"> {/* Adjust minH for feedback animation */}
           <FeedbackDisplay show={showFeedback} isCorrect={isCorrect} />
