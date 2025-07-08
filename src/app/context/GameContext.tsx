@@ -2,7 +2,7 @@
 
 
 
-import { createContext, useContext, useReducer, useEffect } from 'react'
+import { createContext, useContext, useReducer, useEffect, useState } from 'react'
 import useLocalStorage from '../../hooks/useLocalStorage'
 import { generateQuestion } from '../../utils/questionGenerator'
 
@@ -40,7 +40,12 @@ type GameAction =
   | { type: 'ANSWER'; payload: { answer: number } }
   | { type: 'RESET' }
   | { type: 'ADD_USER'; payload: { name: string } }
-  | { type: 'SWITCH_USER'; payload: { userId: string } };
+  | { type: 'SWITCH_USER'; payload: { userId: string } }
+  | { type: 'SET_SAVED_STATE'; payload: GameState }
+  | { type: 'SET_CALC_TYPE'; payload: { calcType: string } }
+  | { type: 'SET_MAX_DIGITS'; payload: { maxDigits: number } }
+  | { type: 'SET_CARRY_UP'; payload: { carryUp: boolean } }
+  | { type: 'SET_BORROW_DOWN'; payload: { borrowDown: boolean } };
 
 // 初期状態
 const initialState: GameState = {
@@ -109,6 +114,16 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const user = state.users.find(u => u.id === action.payload.userId) || null;
       return { ...state, currentUser: user };
     }
+    case 'SET_SAVED_STATE':
+      return { ...action.payload };
+    case 'SET_CALC_TYPE':
+      return { ...state, calcType: action.payload.calcType };
+    case 'SET_MAX_DIGITS':
+      return { ...state, maxDigits: action.payload.maxDigits };
+    case 'SET_CARRY_UP':
+      return { ...state, carryUp: action.payload.carryUp };
+    case 'SET_BORROW_DOWN':
+      return { ...state, borrowDown: action.payload.borrowDown };
     default:
       return state;
   }
@@ -116,20 +131,41 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
 
 // Context
 const GameContext = createContext<
-  { state: GameState; dispatch: React.Dispatch<GameAction> } | undefined
+  { state: GameState; dispatch: React.Dispatch<GameAction>; isLoaded: boolean } | undefined
 >(undefined);
 
 // Provider
 export const GameProvider = ({ children }: { children: React.ReactNode }) => {
-  const [savedState, setSavedState] = useLocalStorage('gameState', initialState);
-  const [state, dispatch] = useReducer(gameReducer, savedState || initialState);
+  const [state, dispatch] = useReducer(gameReducer, initialState);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    setSavedState(state);
-  }, [state, setSavedState]);
+    if (typeof window !== 'undefined') {
+      try {
+        const savedState = localStorage.getItem('gameState');
+        if (savedState) {
+          dispatch({ type: 'SET_SAVED_STATE', payload: JSON.parse(savedState) });
+        }
+      } catch (error) {
+        console.error("Failed to load state from localStorage", error);
+      } finally {
+        setIsLoaded(true);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isLoaded && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('gameState', JSON.stringify(state));
+      } catch (error) {
+        console.error("Failed to save state to localStorage", error);
+      }
+    }
+  }, [state, isLoaded]);
 
   return (
-    <GameContext.Provider value={{ state, dispatch }}>
+    <GameContext.Provider value={{ state, dispatch, isLoaded }}>
       {children}
     </GameContext.Provider>
   );

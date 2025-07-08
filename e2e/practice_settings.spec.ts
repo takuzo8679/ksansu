@@ -16,6 +16,7 @@ const START_BUTTON_TEST_ID = 'start-button';
 // Common setup for all tests
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
+  await page.getByTestId(NEW_USER_INPUT_TEST_ID).waitFor(); // Wait for the UserManagement component to be loaded
 });
 
 test.describe('User Management', () => {
@@ -134,9 +135,11 @@ test.describe('Practice Flow', () => {
     // Select non-default options
     await expect(page.getByTestId('calc-type-sub')).toBeVisible({ timeout: 10000 });
     await page.getByTestId('calc-type-sub').check();
+    await expect(page.getByTestId('calc-type-sub')).toBeChecked();
 
     await expect(page.getByTestId('max-digits-3')).toBeVisible({ timeout: 10000 });
     await page.getByTestId('max-digits-3').check();
+    await expect(page.getByTestId('max-digits-3')).toBeChecked();
 
     // Start practice
     await page.getByRole('button', { name: START_PRACTICE_BUTTON }).click();
@@ -153,9 +156,10 @@ test.describe('Practice Flow', () => {
     await page.waitForLoadState('networkidle');
     await page.getByText(ANOTHER_TRY_BUTTON).click();
     await page.waitForURL('/', { timeout: 10000 });
+    await expect(page.getByTestId('calc-type-add')).toBeVisible();
 
     // Assert that previously selected options are still checked
-    await expect(page.getByTestId('calc-type-sub')).toBeChecked();
-    await expect(page.getByTestId('max-digits-3')).toBeChecked();
+    await expect(page.getByTestId('calc-type-sub')).toBeChecked({ timeout: 10000 });
+    await expect(page.getByTestId('max-digits-3')).toBeChecked({ timeout: 10000 });
   });
 });

@@ -1,34 +1,17 @@
 import { Box, Heading, Radio, RadioGroup, Stack } from '@chakra-ui/react';
 import React from 'react';
+import { useGame } from '../context/GameContext';
 
-interface LevelSelectionFormProps {
-  calcType: string;
-  setCalcType: (value: string) => void;
-  maxDigits: string;
-  setMaxDigits: (value: string) => void;
-  carryUp: string;
-  setCarryUp: (value: string) => void;
-  borrowDown: string;
-  setBorrowDown: (value: string) => void;
-}
-
-const LevelSelectionForm: React.FC<LevelSelectionFormProps> = ({
-  calcType,
-  setCalcType,
-  maxDigits,
-  setMaxDigits,
-  carryUp,
-  setCarryUp,
-  borrowDown,
-  setBorrowDown,
-}) => {
+const LevelSelectionForm: React.FC = () => {
+  const { state, dispatch } = useGame();
+  const { calcType, maxDigits, carryUp, borrowDown } = state;
   return (
     <Box>
       <Heading as="h2" size="lg" mb={4}>
         レベルせんたく
       </Heading>
       <Stack spacing={4}>
-        <RadioGroup onChange={setCalcType} value={calcType}>
+        <RadioGroup onChange={(value) => dispatch({ type: 'SET_CALC_TYPE', payload: { calcType: value } })} value={calcType}>
           <Stack direction="row">
             <Radio value="add" data-testid="calc-type-add">たしざん</Radio>
             <Radio value="sub" data-testid="calc-type-sub">ひきざん</Radio>
@@ -36,7 +19,7 @@ const LevelSelectionForm: React.FC<LevelSelectionFormProps> = ({
             <Radio value="div" data-testid="calc-type-div">わりざん</Radio>
           </Stack>
         </RadioGroup>
-        <RadioGroup onChange={setMaxDigits} value={maxDigits}>
+        <RadioGroup onChange={(value) => dispatch({ type: 'SET_MAX_DIGITS', payload: { maxDigits: parseInt(value) } })} value={maxDigits.toString()}>
           <Stack direction="row">
             <Radio value="1" data-testid="max-digits-1">1けた</Radio>
             <Radio value="2" data-testid="max-digits-2">2けた</Radio>
@@ -45,7 +28,7 @@ const LevelSelectionForm: React.FC<LevelSelectionFormProps> = ({
           </Stack>
         </RadioGroup>
         {calcType === 'add' && (
-          <RadioGroup onChange={setCarryUp} value={carryUp}>
+          <RadioGroup onChange={(value) => dispatch({ type: 'SET_CARRY_UP', payload: { carryUp: value === 'true' } })} value={carryUp.toString()}>
             <Stack direction="row">
               <Radio value="true" data-testid="carry-up-true">くりあがりあり</Radio>
               <Radio value="false" data-testid="carry-up-false">くりあがりなし</Radio>
@@ -53,7 +36,7 @@ const LevelSelectionForm: React.FC<LevelSelectionFormProps> = ({
           </RadioGroup>
         )}
         {calcType === 'sub' && (
-          <RadioGroup onChange={setBorrowDown} value={borrowDown}>
+          <RadioGroup onChange={(value) => dispatch({ type: 'SET_BORROW_DOWN', payload: { borrowDown: value === 'true' } })} value={borrowDown.toString()}>
             <Stack direction="row">
               <Radio value="true" data-testid="borrow-down-true">くりさがりあり</Radio>
               <Radio value="false" data-testid="borrow-down-false">くりさがりなし</Radio>
