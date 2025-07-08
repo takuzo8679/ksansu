@@ -20,7 +20,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'NEXT_PUBLIC_E2E_TEST_MODE=true npm run build && npm run start',
+    command: 'NEXT_PUBLIC_E2E_TEST_MODE=true npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 60 * 1000, // 60 seconds for server startup
