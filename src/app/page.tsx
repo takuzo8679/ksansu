@@ -31,7 +31,7 @@ export default function Home() {
 
   return (
     <Box as="main" p={8}>
-      <VStack spacing={8}>
+      <VStack spacing="8">
         <Heading as="h1" size="2xl">
           けいさんすう
         </Heading>
